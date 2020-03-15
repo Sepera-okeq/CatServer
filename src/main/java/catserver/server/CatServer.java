@@ -13,7 +13,7 @@ public class CatServer {
 
     private static CatServerConfig config = new CatServerConfig("catserver.yml");
 
-    public static String getVersion(){
+    public static String getVersion() {
         return version;
     }
 

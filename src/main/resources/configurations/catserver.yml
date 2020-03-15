@@ -38,3 +38,5 @@ disableUpdateGameProfile: false
 disableFMLHandshake: false
 # 禁用Ping获取MOD列表, 可缓解假人攻击
 disableFMLStatusModInfo: false
+# 使用native处理gzip压缩和加密等处理
+enableNative: false

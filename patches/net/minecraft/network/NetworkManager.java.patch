@@ -1,6 +1,15 @@
 --- ../src-base/minecraft/net/minecraft/network/NetworkManager.java
 +++ ../src-work/minecraft/net/minecraft/network/NetworkManager.java
-@@ -26,12 +26,14 @@
+@@ -1,5 +1,8 @@
+ package net.minecraft.network;
+ 
++import catserver.server.CatServer;
++import catserver.server.network.CatNettyEncryptingDecoder;
++import catserver.server.network.CatNettyEncryptingEncoder;
+ import com.google.common.collect.Queues;
+ import com.google.common.util.concurrent.ThreadFactoryBuilder;
+ import io.netty.bootstrap.Bootstrap;
+@@ -26,12 +29,14 @@
  import io.netty.util.AttributeKey;
  import io.netty.util.concurrent.Future;
  import io.netty.util.concurrent.GenericFutureListener;
@@ -15,7 +24,7 @@
  import net.minecraft.util.CryptManager;
  import net.minecraft.util.ITickable;
  import net.minecraft.util.LazyLoadBase;
-@@ -46,201 +48,162 @@
+@@ -46,201 +51,162 @@
  import org.apache.logging.log4j.Marker;
  import org.apache.logging.log4j.MarkerManager;
  
@@ -278,7 +287,7 @@
                          channelfuture1.addListeners(futureListeners);
                      }
  
-@@ -250,89 +213,71 @@
+@@ -250,89 +216,71 @@
          }
      }
  
@@ -396,7 +405,7 @@
                      ;
                  }
  
-@@ -343,126 +288,105 @@
+@@ -343,126 +291,110 @@
      }
  
      @SideOnly(Side.CLIENT)
@@ -420,8 +429,15 @@
 -    {
 +    public void enableEncryption(SecretKey key) {
          this.isEncrypted = true;
-         this.channel.pipeline().addBefore("splitter", "decrypt", new NettyEncryptingDecoder(CryptManager.createNetCipherInstance(2, key)));
-         this.channel.pipeline().addBefore("prepender", "encrypt", new NettyEncryptingEncoder(CryptManager.createNetCipherInstance(1, key)));
+-        this.channel.pipeline().addBefore("splitter", "decrypt", new NettyEncryptingDecoder(CryptManager.createNetCipherInstance(2, key)));
+-        this.channel.pipeline().addBefore("prepender", "encrypt", new NettyEncryptingEncoder(CryptManager.createNetCipherInstance(1, key)));
++        if (!CatServer.getConfig().enableNative) {
++            this.channel.pipeline().addBefore("splitter", "decrypt", new NettyEncryptingDecoder(CryptManager.createNetCipherInstance(2, key)));
++            this.channel.pipeline().addBefore("prepender", "encrypt", new NettyEncryptingEncoder(CryptManager.createNetCipherInstance(1, key)));
++        } else {
++            this.channel.pipeline().addBefore("splitter", "decrypt", new CatNettyEncryptingDecoder(CryptManager.createNetCipherInstance(2, key), key.getEncoded()));
++            this.channel.pipeline().addBefore("prepender", "encrypt", new CatNettyEncryptingEncoder(CryptManager.createNetCipherInstance(1, key), key.getEncoded()));
++        }
      }
  
      @SideOnly(Side.CLIENT)

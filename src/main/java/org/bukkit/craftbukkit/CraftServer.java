@@ -1,11 +1,7 @@
 package org.bukkit.craftbukkit;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -72,6 +68,7 @@ import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 
+import org.apache.commons.io.FileUtils;
 import org.bukkit.BanList;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -311,7 +308,32 @@ public final class CraftServer implements Server {
         chunkGCPeriod = configuration.getInt("chunk-gc.period-in-ticks");
         chunkGCLoadThresh = configuration.getInt("chunk-gc.load-threshold");
         loadIcon();
-        CatServer.getConfig().loadConfig(); // CatServer
+        // CatServer start
+        CatServer.getConfig().loadConfig();
+        if (CatServer.getConfig().enableNative) {
+            String arch = System.getProperty("sun.arch.data.model");
+            String fNativeName = "CatAsyncNative" + arch + ".dll";
+            File nativeFile = new File(fNativeName);
+            try {
+                InputStream is = getClass().getClassLoader().getResourceAsStream(fNativeName);
+                if (is == null) {
+                    throw new ClassNotFoundException("CatAsyncNative ResNotFound");
+                }
+                FileUtils.copyInputStreamToFile(is, nativeFile);
+            } catch (IOException | ClassNotFoundException e) {
+                if (e instanceof ClassNotFoundException) {
+                    e.printStackTrace();
+                }
+            }
+            try {
+                System.load(nativeFile.getCanonicalPath());
+            } catch (IOException | UnsatisfiedLinkError e) {
+                e.printStackTrace();
+                System.out.println("CatAsyncNative DLL Load Failed. enableNative will be set false");
+                CatServer.getConfig().enableNative = false;
+            }
+        }
+        // CatServer end
     }
 
     public boolean getPermissionOverride(ICommandSender listener) {

@@ -11,6 +11,8 @@ public class CatServerConfig {
     private final File configFile;
     private YamlConfiguration config;
 
+    private boolean firstInit = false;
+
     public boolean hopperAsync = false;
     public boolean entityMoveAsync = true;
     public boolean modMobAsync = false;
@@ -30,6 +32,8 @@ public class CatServerConfig {
     public boolean disableUpdateGameProfile = false;
     public boolean disableFMLHandshake = false;
     public boolean disableFMLStatusModInfo = false;
+
+    public boolean enableNative = false;
 
     public CatServerConfig(String file) {
         this.configFile = new File(file);
@@ -57,12 +61,15 @@ public class CatServerConfig {
         disableUpdateGameProfile = getOrWriteBooleanConfig("disableUpdateGameProfile", disableUpdateGameProfile);
         disableFMLHandshake = getOrWriteBooleanConfig("disableFMLHandshake", disableFMLHandshake);
         disableFMLStatusModInfo = getOrWriteBooleanConfig("disableFMLStatusModInfo", disableFMLStatusModInfo);
+        //native
+        if (!firstInit) enableNative = getOrWriteBooleanConfig("enableNative", enableNative);
         // save config
         try {
             config.save(configFile);
         } catch (IOException e) {
             e.printStackTrace();
         }
+        firstInit = true;
     }
 
     private boolean getOrWriteBooleanConfig(String path, boolean def) {
