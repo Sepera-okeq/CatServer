@@ -152,11 +152,11 @@ dependencies {
 }
 
 outputJar {
-    classifier = 'async'
+    classifier = 'asyncNative'
     
     manifest.attributes([
             "Implementation-Title": rootProject.name,
-            "Implementation-Version": "git-CatServerAsync-" + minecraft.version + "-" + version,
+            "Implementation-Version": "git-CatServerAsyncNative-" + minecraft.version + "-" + version,
             "Main-Class": "catserver.server.CatServerLaunch",
             "TweakClass": "net.minecraftforge.fml.common.launcher.FMLTweaker",
             "Class-Path": file("src/main/resources/libraries.info").readLines().findAll{ "lib".equals(it.split("\\|")[0]) }.collect { it.split("\\|")[1] }.join(" ")
