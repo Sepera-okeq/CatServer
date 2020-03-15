@@ -40,7 +40,6 @@ public class CatNettyEncryptingEncoder extends NettyEncryptingEncoder {
     @Override
     protected void finalize() throws Throwable {
         NativeCalls.aesReleaseEncryptKey(AES_KEY);
-        FMLLog.log.info("Release aes encrypt key success");
         super.finalize();
     }
 }
