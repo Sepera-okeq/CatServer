@@ -40,3 +40,5 @@ disableFMLHandshake: false
 disableFMLStatusModInfo: false
 # 使用native处理gzip压缩和加密等处理
 enableNative: false
+# 设置网络gzip压缩等级, 默认 -1, 可选值 -1 至 9, 等级越高压缩越小越占CPU
+networkCompressionLevel: -1

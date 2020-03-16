@@ -1,0 +1,12 @@
+--- ../src-base/minecraft/net/minecraft/network/NettyCompressionEncoder.java
++++ ../src-work/minecraft/net/minecraft/network/NettyCompressionEncoder.java
+@@ -49,4 +49,9 @@
+     {
+         this.threshold = thresholdIn;
+     }
++
++    public int getCompressionThreshold()
++    {
++        return this.threshold;
++    }
+ }

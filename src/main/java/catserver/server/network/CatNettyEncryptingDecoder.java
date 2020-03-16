@@ -1,5 +1,6 @@
 package catserver.server.network;
 
+import catserver.server.natives.NativeCalls;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import net.minecraft.network.NettyEncryptingDecoder;
@@ -18,8 +19,9 @@ public class CatNettyEncryptingDecoder extends NettyEncryptingDecoder {
     }
 
     @Override
-    protected void decode(ChannelHandlerContext out, ByteBuf in, List<Object> unknowList) throws Exception {
+    protected void decode(ChannelHandlerContext out, ByteBuf in, List<Object> unknownList) throws Exception {
         if (in.hasMemoryAddress()) {
+            int bakInReaderIndex = in.readerIndex();
             try {
                 long inAddress = in.memoryAddress();
                 int i = in.readableBytes();
@@ -27,14 +29,15 @@ public class CatNettyEncryptingDecoder extends NettyEncryptingDecoder {
                 NativeCalls.aesDecrypt(inAddress + in.readerIndex(), outByteBuf.memoryAddress(), i, AES_KEY);
                 in.skipBytes(i);
                 outByteBuf.writerIndex(i);
-                unknowList.add(outByteBuf);
-            }catch (Throwable error) {
+                unknownList.add(outByteBuf);
+            } catch (Throwable error) {
+                in.readerIndex(bakInReaderIndex);
                 FMLLog.log.warn("Native decrypt data error", error);
-                super.decode(out, in, unknowList);
+                super.decode(out, in, unknownList);
             }
         } else {
             FMLLog.log.warn("The Buff has no memory address: {}", in.getClass());
-            super.decode(out, in, unknowList);
+            super.decode(out, in, unknownList);
         }
     }
 

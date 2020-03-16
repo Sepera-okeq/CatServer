@@ -34,6 +34,7 @@ public class CatServerConfig {
     public boolean disableFMLStatusModInfo = false;
 
     public boolean enableNative = false;
+    public int networkCompressionLevel = -1;
 
     public CatServerConfig(String file) {
         this.configFile = new File(file);
@@ -63,6 +64,8 @@ public class CatServerConfig {
         disableFMLStatusModInfo = getOrWriteBooleanConfig("disableFMLStatusModInfo", disableFMLStatusModInfo);
         //native
         if (!firstInit) enableNative = getOrWriteBooleanConfig("enableNative", enableNative);
+        //networkComp
+        networkCompressionLevel = getOrWriteIntConfig("networkCompressionLevel", networkCompressionLevel);
         // save config
         try {
             config.save(configFile);

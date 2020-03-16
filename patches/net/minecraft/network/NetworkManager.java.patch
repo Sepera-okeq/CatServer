@@ -1,15 +1,17 @@
 --- ../src-base/minecraft/net/minecraft/network/NetworkManager.java
 +++ ../src-work/minecraft/net/minecraft/network/NetworkManager.java
-@@ -1,5 +1,8 @@
+@@ -1,5 +1,10 @@
  package net.minecraft.network;
  
 +import catserver.server.CatServer;
++import catserver.server.network.CatNettyCompressionDecoder;
++import catserver.server.network.CatNettyCompressionEncoder;
 +import catserver.server.network.CatNettyEncryptingDecoder;
 +import catserver.server.network.CatNettyEncryptingEncoder;
  import com.google.common.collect.Queues;
  import com.google.common.util.concurrent.ThreadFactoryBuilder;
  import io.netty.bootstrap.Bootstrap;
-@@ -26,12 +29,14 @@
+@@ -26,12 +31,14 @@
  import io.netty.util.AttributeKey;
  import io.netty.util.concurrent.Future;
  import io.netty.util.concurrent.GenericFutureListener;
@@ -24,7 +26,7 @@
  import net.minecraft.util.CryptManager;
  import net.minecraft.util.ITickable;
  import net.minecraft.util.LazyLoadBase;
-@@ -46,201 +51,162 @@
+@@ -46,201 +53,162 @@
  import org.apache.logging.log4j.Marker;
  import org.apache.logging.log4j.MarkerManager;
  
@@ -287,7 +289,7 @@
                          channelfuture1.addListeners(futureListeners);
                      }
  
-@@ -250,89 +216,71 @@
+@@ -250,89 +218,71 @@
          }
      }
  
@@ -405,7 +407,7 @@
                      ;
                  }
  
-@@ -343,126 +291,110 @@
+@@ -343,126 +293,124 @@
      }
  
      @SideOnly(Side.CLIENT)
@@ -431,6 +433,7 @@
          this.isEncrypted = true;
 -        this.channel.pipeline().addBefore("splitter", "decrypt", new NettyEncryptingDecoder(CryptManager.createNetCipherInstance(2, key)));
 -        this.channel.pipeline().addBefore("prepender", "encrypt", new NettyEncryptingEncoder(CryptManager.createNetCipherInstance(1, key)));
++        //CatServer start - native
 +        if (!CatServer.getConfig().enableNative) {
 +            this.channel.pipeline().addBefore("splitter", "decrypt", new NettyEncryptingDecoder(CryptManager.createNetCipherInstance(2, key)));
 +            this.channel.pipeline().addBefore("prepender", "encrypt", new NettyEncryptingEncoder(CryptManager.createNetCipherInstance(1, key)));
@@ -438,6 +441,7 @@
 +            this.channel.pipeline().addBefore("splitter", "decrypt", new CatNettyEncryptingDecoder(CryptManager.createNetCipherInstance(2, key), key.getEncoded()));
 +            this.channel.pipeline().addBefore("prepender", "encrypt", new CatNettyEncryptingEncoder(CryptManager.createNetCipherInstance(1, key), key.getEncoded()));
 +        }
++        //CatServer end - native
      }
  
      @SideOnly(Side.CLIENT)
@@ -489,7 +493,13 @@
 +            if (this.channel.pipeline().get("decompress") instanceof NettyCompressionDecoder) {
 +                ((NettyCompressionDecoder) this.channel.pipeline().get("decompress")).setCompressionThreshold(threshold);
 +            } else {
-+                this.channel.pipeline().addAfter("splitter", "decompress", new NettyCompressionDecoder(threshold)); // CatServer
++                //CatServer start - native
++                if (CatServer.getConfig().enableNative) {
++                    this.channel.pipeline().addAfter("splitter", "decompress", new CatNettyCompressionDecoder(threshold)); // CatServer
++                } else {
++                    this.channel.pipeline().addAfter("splitter", "decompress", new NettyCompressionDecoder(threshold)); // CatServer
++                }
++                //CatServer end - native
              }
 -            else
 -            {
@@ -499,14 +509,21 @@
 -            if (this.channel.pipeline().get("compress") instanceof NettyCompressionEncoder)
 -            {
 -                ((NettyCompressionEncoder)this.channel.pipeline().get("compress")).setCompressionThreshold(threshold);
--            }
--            else
--            {
 +            if (this.channel.pipeline().get("compress") instanceof NettyCompressionEncoder) {
 +                ((NettyCompressionEncoder) this.channel.pipeline().get("compress")).setCompressionThreshold(threshold);
 +            } else {
-                 this.channel.pipeline().addBefore("encoder", "compress", new NettyCompressionEncoder(threshold));
++                //CatServer start - native
++                if (CatServer.getConfig().enableNative) {
++                    this.channel.pipeline().addBefore("encoder", "compress", new CatNettyCompressionEncoder(threshold));
++                } else {
++                    this.channel.pipeline().addBefore("encoder", "compress", new NettyCompressionEncoder(threshold));
++                }
++                //CatServer end - native
              }
+-            else
+-            {
+-                this.channel.pipeline().addBefore("encoder", "compress", new NettyCompressionEncoder(threshold));
+-            }
 -        }
 -        else
 -        {
